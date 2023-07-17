@@ -57,8 +57,11 @@ function p_controls()
 	end
 	--fire
 	if btnp(4) then
-		bullet_pos_y=ship_pos_y-4
-		bullet_pos_x=ship_pos_x
+		local bullet={
+			y=ship_pos_y-4,
+			x=ship_pos_x
+		}
+		add(bullets,bullet)
 		sfx(0)
 		muzzle=5
 	end
@@ -88,7 +91,17 @@ function bullet_anim()
 end
 
 function bullet_move()
-	bullet_pos_y=bullet_pos_y-3
+	local bullet_speed=3
+	local offscreen_y=-8
+	
+	for i=#bullets,1,-1 do
+		local bullet = bullets[i]
+		bullet.y=bullet.y-bullet_speed
+		if bullet.y<offscreen_y then
+			del(bullets, bullet)
+		end
+	end
+
 end
 
 function muzzle_anim()
@@ -112,25 +125,25 @@ function draw_lives()
 end
 
 function draw_starfield()
-	for i=1,#starx do
-			local star_color=6
-			if star_speed[i]<1 then
-				star_color=1
-			elseif star_speed[i]<1.5 then
-				star_color=13
-			end
-			pset(starx[i],stary[i],star_color)
+	for i=1, #stars do
+		star_color=6
+		local star=stars[i]
+		if star.spd<1 then
+			star_color=1
+		elseif star.spd<1.5 then
+			star_color=13
+		end
+		pset(star.x, star.y, star_color)
 	end
 end
 
 function starfield_anim()
-	for i=1,#stary do
-		local sy=stary[i]
-		sy=sy+star_speed[i]
-		if sy>128 then
-			sy=sy-128
-		end
-		stary[i]=sy
+	for i=1, #stars do
+		local star=stars[i]
+		star.y=star.y+star.spd
+		if star.y>128 then
+			star.y=star.y-128
+		end	
 	end
 end
 
@@ -155,8 +168,11 @@ function draw_game()
 	spr(ship_spr, ship_pos_x, ship_pos_y)
 	--ship engine fire
 	spr(engine_f_spr, ship_pos_x, ship_pos_y+9)
-	--bullet
-	spr(bullet_spr, bullet_pos_x, bullet_pos_y)
+	--bullets
+	for i=1,#bullets do
+		local bullet = bullets[i]
+		spr(bullet_spr, bullet.x, bullet.y)
+	end
 	--muzzle flash
 	if muzzle>0 then
 		circfill(ship_pos_x+3,ship_pos_y,muzzle,7)
@@ -216,6 +232,9 @@ function stage_limit()
 	end
 end
 
+
+-->8
+--reset
 function reset()
 		--player vars
 	lives=2
@@ -233,16 +252,17 @@ function reset()
 	--score
 	score=3000
 	--stars
-	starx={}
-	stary={}
-	star_speed={}
+	stars={}
 	for i=1,100 do
-		add(starx,flr(rnd(128)))
-		add(stary,flr(rnd(128)))
-		add(star_speed,rnd(1.5)+0.5)
+		local new_star={}
+		new_star.x=flr(rnd(128))
+		new_star.y=flr(rnd(128))
+		new_star.spd=rnd(1.5)+0.5
+		add(stars, new_star)
 	end
+	
+	bullets={}
 end
-
 
 __gfx__
 00000000000800000008800000008000009999000009900000099000000990000099990000000000000000000000000000000000000000000000000000000000
